@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+    es01:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+        container_name: es01
+        environment:
+            - node.name=es01
+            - cluster.name=docker-cluster
+            - discovery.type=single-node
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - xpack.license.self_generated.type=basic
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - data01:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.9.0
+        container_name: kibana
+        ports:
+            - 5601:5601
+        environment:
+            ELASTICSEARCH_URL: http://es01:9200
+            ELASTICSEARCH_HOSTS: http://es01:9200
+        depends_on:
+            - es01
+    toggl_elastic:
+        environment:
+            TOGGL_API_TOKEN: a04011fedbc1d83a167e1a5f600c3650
+        container_name: toggl_elastic
+        build:
+            context: .
+
+volumes:
+    data01:
+        driver: local
